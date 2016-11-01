@@ -1,42 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-def parse_index():
-    url = "http://www.beautylegmm.com"
-    respone = requests.get(url)
-    soup = BeautifulSoup(respone.text,"html.parser")
-
-    adumlist = soup.find_all(attrs={"class":"post_weidaopic"})
-    # for i in Adum:
-    #     print(i.a["href"]+'\t'+i.a["title"])
-
-    try:
-        nurl = soup.find(attrs={"class":"next"}).a["href"]
-    except:
-        print("Can't find next")
-
-    res = requests.get(nurl)
-    soup = BeautifulSoup(res.text, "html.parser")
-
-    adumlist2 = soup.find_all(attrs={"class": "post_weidaopic"})
-
-    adumlist.extend(adumlist2)
-
-    parse_adum(adumlist[0].a["href"])
-
-def parse_adum(url):
-    aurl = url
-
-
-    respone = requests.get(aurl)
-    soup = BeautifulSoup(respone.text,"html.parser")
-    print(soup)
-    piclist = soup.find_all(has_real_pic)
-    # for i in piclist:
-    #     print(i)
-
-    next_url=soup.find(attrs={"class":"next"})["href"]
-
 
 def has_real_pic(tag):
     return tag.has_attr('alt') and tag.has_attr("src") and tag.has_attr("width")
