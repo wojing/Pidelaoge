@@ -2,6 +2,8 @@ import requests
 import time
 from bs4 import BeautifulSoup
 import pymysql
+import sys
+
 
 conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='wojing', db='work',charset='utf8')
 
@@ -9,22 +11,20 @@ def has_real_pic(tag):
     return tag.has_attr('alt') and tag.has_attr("src") and tag.has_attr("width")
 
 
-
-
 def main():
 
     cur = conn.cursor()
-    cur.execute("truncate  bl_ablum_list")
-    cur.execute("truncate  bl_ablum_detail")
+    # cur.execute("truncate  bl_ablum_list")
+    # cur.execute("truncate  bl_ablum_detail")
+
 
     url = "http://www.beautylegmm.com"
     ablumlist = []
     piclist = []
     i = 1
 
-    while(i<2):
+    while(i):
         list,nurl = parse_ablum(url)
-        import_ablum(cur,list)
         ablumlist.extend(list)
         time.sleep(0.1)
         if nurl is not None:
@@ -40,7 +40,7 @@ def main():
 
 
     ablum_new = getNewAblum(cur,ablumlist)
-
+    import_ablum(cur,ablum_new)
 
 
     print("ablum_new num is %s"  % len(ablum_new))
@@ -56,12 +56,14 @@ def main():
                 alist,nurl= parse_pic(url)
                 import_pic(cur,alist)
                 # piclist.extend(alist)
-                time.sleep(0.1)
+                time.sleep(0.01)
                 s += 1
                 print("pic %d" % s)
-            except:
+            except :
+                print("Unexpected error:", sys.exc_info()[0])
                 errorPage_list.extend(url)
                 break
+
 
             if nurl is not None:
                 url = nurl
@@ -83,7 +85,7 @@ def main():
                 alist, nurl = parse_pic(url)
                 import_pic(cur, alist)
                 # piclist.extend(alist)
-                time.sleep(0.1)
+                time.sleep(0.01)
                 err += 1
                 print("pic_err %d" % err)
             except:
@@ -97,6 +99,9 @@ def main():
 
     print("error page handled num is %d" % len(errorPage_final_list) )
 
+    errfilename="error_"+time.ctime()+".txt"
+    with open(errfilename,"w") as error_f:
+       error_f.writelines(["%s\n" % item for item in errorPage_final_list])
 
     cur.close()
     conn.close()
@@ -163,15 +168,10 @@ def import_pic(cur,list):
         pic_url =  i["src"]
         pic_name = i["alt"].replace("'","\\'")
         pic_no = pic_name.split(" ")[2]
-        sql = "insert into bl_ablum_detail values('%s','%s','%s') " % (pic_name,pic_url,pic_no )
+        sql = "insert into bl_ablum_detail values('%s','%s','%s','') " % (pic_name,pic_url,pic_no )
         cur.execute(sql )
     conn.commit()
 
-
-def import_errorPage(cur,list):
-    for i in list:
-        sql = "insert into "
-    pass
 
 
 def getNewAblum(cur,list):
@@ -179,9 +179,10 @@ def getNewAblum(cur,list):
     for i in list:
         no = i.div.a.text.replace("'","\\'").split(" ")[2]
         sql =("select * from bl_ablum_list where ablum_no = '%s' " % no)
-        row_count = cur.execute(sql)
-        if row_count == 0 :
-           ablum_new.extend(i)
+        cur.execute(sql)
+        result = cur.fetchone()
+        if result is  None  :
+           ablum_new.append(i)
 
     return ablum_new
 
@@ -190,7 +191,11 @@ def getNewAblum(cur,list):
 
 
 if __name__ == '__main__':
-    print("starttime %s" % time.ctime())
+    starttime=time.time()
+    print("Project Start!" )
     main()
 
-    print("endtime %s " % time.ctime())
+
+    print("Project Completed!" )
+    print("Cost time %s" % (time.time()-starttime )/3600.0)
+
