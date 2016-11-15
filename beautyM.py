@@ -17,7 +17,7 @@ def main():
     # cur.execute("truncate  bl_ablum_list")
     # cur.execute("truncate  bl_ablum_detail")
 
-
+    print("Getting Ablum List ...")
     url = "http://www.beautylegmm.com"
     ablumlist = []
     piclist = []
@@ -32,7 +32,7 @@ def main():
         else:
             break
         i +=1
-        print("ablum %d" % i)
+
     print(time.ctime())
 
     # with open("ablumlist.txt","w") as ablumlist_file:
@@ -44,8 +44,7 @@ def main():
 
 
     print("ablum_new num is %s"  % len(ablum_new))
-
-
+    print("Getting  New Ablum details...")
     s = 1
     errorPage_list =[]
     for h in ablum_new:
@@ -99,9 +98,10 @@ def main():
 
     print("error page handled num is %d" % len(errorPage_final_list) )
 
-    errfilename="error_"+time.ctime()+".txt"
-    with open(errfilename,"w") as error_f:
-       error_f.writelines(["%s\n" % item for item in errorPage_final_list])
+    if len(errorPage_final_list) > 0:
+        errfilename="error_"+time.strftime("%Y%m%d_%H%M%S", time.localtime()) +".txt"
+        with open(errfilename,"w") as error_f:
+           error_f.writelines(["%s\n" % item for item in errorPage_final_list])
 
     cur.close()
     conn.close()
@@ -197,5 +197,5 @@ if __name__ == '__main__':
 
 
     print("Project Completed!" )
-    print("Cost time %s" % (time.time()-starttime )/3600.0)
+    print("Cost time %d" % int(time.time()-starttime )/3600.0)
 
