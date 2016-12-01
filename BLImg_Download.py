@@ -1,4 +1,3 @@
-
 import sys
 import os
 import threading
@@ -38,7 +37,7 @@ def imgDownload(item):
                 if chunk:  # filter out keep-alive new chunks
                     f.write(chunk)
                     f.flush()
-                    print("File %s is downloaded." % file_name)
+            print("File %s is downloaded." % file_name)
             f.close()
 
     ### download with curl TODO
@@ -50,7 +49,7 @@ conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='wojing'
 class TaskQueue():
     def __init__(self):
         self.cur = conn.connect()
-        sql = "select * from bl_ablum_detail"
+        sql = "select * from bl_ablum_detail where ablum_no in ('No.1378') "
         cur.execute(sql)
 
         self.queue = queue.Queue()
@@ -78,13 +77,10 @@ class ImgDownload(threading.Thread):
 
     def run(self):
         while(True):
+            if self.queue.queue.empty():
+                self.queue.queue.task_done()
+                break
             item = self.queue.queue.get()
-            if item is None :
-                if self.queue.flag is False:
-                    self.queue.addTask()
-                    continue
-                else:
-                    break
             try:
                 imgDownload(item)
             except:
@@ -106,6 +102,9 @@ def main():
 
     # print('Took {}s'.format(time.time() - ts))
 
-
+				#flag = self.queue.addTask()
+                #if flag:
+                    #self.queue.queue.task_done()
+                    #break
 if __name__ == '__main__':
     main()
