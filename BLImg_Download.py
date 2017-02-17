@@ -47,9 +47,9 @@ conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='wojing'
 
 
 class TaskQueue():
-    def __init__(self):
+    def __init__(self,ablum_list):
         self.cur = conn.connect()
-        sql = "select * from bl_ablum_detail where ablum_no in ('No.1378') "
+        sql = "select * from bl_ablum_detail where ablum_no in ( %s ) " % ablum_list
         cur.execute(sql)
 
         self.queue = queue.Queue()

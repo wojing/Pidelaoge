@@ -3,9 +3,11 @@ import time
 from bs4 import BeautifulSoup
 import pymysql
 import sys
-
+import BLImg_Download
 
 conn = pymysql.connect(host='127.0.0.1', port=3306, user='root', passwd='wojing', db='work',charset='utf8')
+
+ablum_no_list = []
 
 def has_real_pic(tag):
     return tag.has_attr('alt') and tag.has_attr("src") and tag.has_attr("width")
@@ -183,6 +185,7 @@ def getNewAblum(cur,list):
         result = cur.fetchone()
         if result is  None  :
            ablum_new.append(i)
+           ablum_no_list.append(i)
 
     return ablum_new
 
@@ -194,7 +197,19 @@ if __name__ == '__main__':
     starttime=time.time()
     print("Project Start!" )
     main()
+    if ablum_no_list is not None:
+        ablumsql_t = ""
+        for i in ablum_no_list:
+            ablumsql_t =  ablumsql_t + " "+i+","
+        ablumsql = ablumsql_t[:-1]
+        queue = BLImg_Download.TaskQueue(ablumsql)
+        print("start download!-------------------------------------")
+        for x in range(8):
+            downloader = BLImg_Download.ImgDownload(queue)
+            downloader.daemon = True
+            downloader.start()
 
+        queue.queue.join()
 
     print("Project Completed!" )
     print("Cost time %d" % int(time.time()-starttime )/3600.0)
