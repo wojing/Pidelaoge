@@ -26,8 +26,15 @@ def main():
     i = 1
 
     while(i):
-        list,nurl = parse_ablum(url)
-        ablumlist.extend(list)
+        print("url:"+url)
+        try:
+            list,nurl = parse_ablum(url)
+            ablumlist.extend(list)
+
+        except :
+            print("Unexpected error:", sys.exc_info()[0])
+            nurl= None
+
         time.sleep(0.1)
         if nurl is not None:
             url = nurl
@@ -64,7 +71,6 @@ def main():
                 print("Unexpected error:", sys.exc_info()[0])
                 errorPage_list.extend(url)
                 break
-
 
             if nurl is not None:
                 url = nurl
@@ -118,7 +124,7 @@ def parse_ablum(url):
         "Connection": "keep-alive",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     }
-    respone = r.get(url,headers = header)
+    respone = r.get(url,headers =header)
     soup = BeautifulSoup(respone.text, "html.parser")
     list = soup.find_all(attrs={"class": "post_weidaopic"})
     # nurl = None
@@ -181,11 +187,12 @@ def getNewAblum(cur,list):
     for i in list:
         no = i.div.a.text.replace("'","\\'").split(" ")[2]
         sql =("select * from bl_ablum_list where ablum_no = '%s' " % no)
+
         cur.execute(sql)
         result = cur.fetchone()
         if result is  None  :
            ablum_new.append(i)
-           ablum_no_list.append(i)
+           ablum_no_list.append(no)
 
     return ablum_new
 
@@ -197,11 +204,14 @@ if __name__ == '__main__':
     starttime=time.time()
     print("Project Start!" )
     main()
-    if ablum_no_list is not None:
+    if len(ablum_no_list) != 0:
+        print("newlist: ")
+        print(ablum_no_list)
         ablumsql_t = ""
         for i in ablum_no_list:
-            ablumsql_t =  ablumsql_t + " "+i+","
+            ablumsql_t =  ablumsql_t + "\""+i+"\","
         ablumsql = ablumsql_t[:-1]
+        print("ablumsql: " + ablumsql)
         queue = BLImg_Download.TaskQueue(ablumsql)
         print("start download!-------------------------------------")
         for x in range(8):
@@ -212,5 +222,5 @@ if __name__ == '__main__':
         queue.queue.join()
 
     print("Project Completed!" )
-    print("Cost time %d" % int(time.time()-starttime )/3600.0)
+    print("Cost time %d" % time.strftime("%H:%M:%S", time.gmtime(time.time()-starttime)))
 
