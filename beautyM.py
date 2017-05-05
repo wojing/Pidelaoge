@@ -223,5 +223,5 @@ if __name__ == '__main__':
 
     print("Project Completed!" )
 
-    print("Cost time %d" % time.strftime("%H:%M:%S", time.gmtime(time.time()-starttime)))
+    print("Cost time %s" % time.strftime("%H:%M:%S", time.gmtime(time.time()-starttime)))
 
